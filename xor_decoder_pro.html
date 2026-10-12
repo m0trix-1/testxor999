@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>XOR Studio — Image & Binary Decoder</title>
+<style>
+:root{--bg:#080d1b;--panel:#111a2e;--panel2:#0c1426;--line:#263653;--text:#edf3ff;--muted:#9aabc7;--accent:#70e1c1;--accent2:#7aa7ff;--danger:#ff7b91;--ok:#6ee7a8}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#142443 0,#080d1b 55%);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;padding:28px 16px}
+main{max-width:1100px;margin:auto}.top{display:flex;align-items:center;gap:14px;margin-bottom:24px}.logo{display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#70e1c1,#7aa7ff);color:#081225;font-size:25px;font-weight:900}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:800}h1{margin:2px 0;font-size:clamp(25px,4vw,36px);letter-spacing:-.04em}.sub{color:var(--muted);margin:0}.layout{display:grid;grid-template-columns:minmax(0, .92fr) minmax(0,1.08fr);gap:18px}.panel{background:linear-gradient(180deg,rgba(17,26,46,.97),rgba(12,20,38,.97));border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 18px 50px #0002}.panel h2{font-size:17px;margin:0 0 16px}.field{margin:14px 0}.field label{display:block;font-weight:700;font-size:13px;margin-bottom:7px}.help{font-size:12px;color:var(--muted);margin-top:6px}input,select{width:100%;padding:12px 13px;border:1px solid #30415f;border-radius:10px;background:#091225;color:var(--text);font:inherit;outline:none}input:focus,select:focus{border-color:var(--accent2);box-shadow:0 0 0 3px #7aa7ff20}input[type=file]{padding:10px}input[type=checkbox]{width:auto;accent-color:var(--accent)}.checkrow{display:flex;align-items:flex-start;gap:9px;color:var(--muted);font-size:13px;margin-top:10px}.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}button,.download{border:0;border-radius:10px;padding:12px 16px;font:inherit;font-weight:800;cursor:pointer;transition:transform .15s,opacity .15s;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}button:hover,.download:hover{transform:translateY(-1px)}button:disabled{opacity:.45;cursor:not-allowed;transform:none}.primary{background:var(--accent);color:#071321;flex:1}.secondary{background:#253453;color:var(--text)}.quiet{background:transparent;color:var(--muted);border:1px solid var(--line)}.status{display:none;margin-top:16px;border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#091225;overflow-wrap:anywhere}.status.show{display:block}.status.success{color:var(--ok);border-color:#285b4a}.status.error{color:var(--danger);border-color:#633343}.status.info{color:#b8d0ff}.progress{height:5px;background:#263653;border-radius:9px;margin-top:10px;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .12s}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.pill{border:1px solid var(--line);border-radius:999px;padding:4px 9px;color:var(--muted);font-size:11px}.results{margin-top:18px}.resulthead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}.resulthead h2{margin:0}.previews{display:grid;grid-template-columns:1fr 1fr;gap:12px}.preview{min-width:0;border:1px solid var(--line);border-radius:14px;background:#080f20;padding:10px}.preview h3{font-size:12px;color:var(--muted);margin:0 0 9px}.preview img{display:block;width:100%;height:240px;object-fit:contain;background:repeating-conic-gradient(#101a2d 0 25%,#0b1425 0 50%) 50%/18px 18px;border-radius:8px}.placeholder{height:240px;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:13px;padding:16px}.download{background:#223653;color:#dffcf4;border:1px solid #426b77}.download[hidden]{display:none}.note{font-size:12px;color:var(--muted);margin-top:16px}.footer{color:#7586a3;font-size:12px;text-align:center;margin:22px 0 0}.hidden{display:none!important}
+@media(max-width:800px){body{padding:16px 10px}.layout{grid-template-columns:1fr}.panel{padding:17px}.previews{grid-template-columns:1fr 1fr}.preview img,.placeholder{height:190px}}@media(max-width:430px){.previews{grid-template-columns:1fr}.preview img,.placeholder{height:220px}.top{align-items:flex-start}.logo{width:44px;height:44px;flex-shrink:0}}
+</style>
+</head>
+<body>
+<main>
+<header class="top"><div class="logo">X</div><div><div class="eyebrow">Local tool · no upload</div><h1>XOR Studio</h1><p class="sub">Giải mã ảnh và dữ liệu nhị phân ngay trên trình duyệt.</p></div></header>
+<div class="layout">
+<section class="panel">
+<h2>01 / Nguồn & cấu hình</h2>
+<form id="decodeForm">
+<div class="field"><label for="fileInput">Tệp đầu vào</label><input id="fileInput" type="file" accept="image/*,.bin,.dat,.xor,.enc,application/octet-stream" required><div class="help">Có thể chọn ảnh hoặc tệp nhị phân đã mã hóa. Dữ liệu được xử lý trên thiết bị của bạn.</div></div>
+<div class="field"><label for="keyInput">Khóa (key)</label><input id="keyInput" type="text" value="" placeholder="Nhập khóa XOR..." autocomplete="off" required><div class="help">Khóa phân biệt dấu; tiếng Việt được chuyển thành byte UTF‑8.</div></div>
+<div class="field"><label for="mode">Phương thức giải mã</label><select id="mode">
+<option value="raw">XOR từng byte của toàn bộ tệp (khuyên dùng nếu file không mở được)</option>
+<option value="pixel-same">XOR ảnh theo pixel — cùng key cho R, G, B</option>
+<option value="pixel-three">XOR ảnh theo pixel — key luân phiên riêng cho R, G, B</option>
+<option value="pixel-math">Biến đổi RGB bằng phép toán số học (có thể đảo ngược)</option>
+<option value="pixel-mix">Kết hợp XOR + phép toán số học trên RGB</option>
+</select><div class="help" id="modeHelp">XOR tệp nhị phân trước, sau đó thử xem kết quả có phải ảnh hợp lệ không.</div></div>
+<div class="field" id="mathSettings">
+<label for="mathOp">Phép toán số học</label>
+<select id="mathOp">
+<option value="add">Cộng key (giải mã: trừ key)</option>
+<option value="sub">Trừ key (giải mã: cộng key)</option>
+<option value="mul">Nhân key (chỉ dùng key lẻ, đảo ngược modulo 256)</option>
+</select>
+<div class="help">Áp dụng riêng cho từng kênh màu, kết quả luôn nằm trong khoảng 0–255. Với phép nhân, key phải lẻ để có thể đảo ngược.</div>
+</div>
+<div class="field"><label for="encoding">Cách mã hóa khóa</label><select id="encoding"><option value="utf8">UTF‑8 (hỗ trợ tiếng Việt)</option><option value="ascii">ASCII (chỉ ký tự 0–127)</option><option value="hex">Hex (ví dụ: 4a 6f 68 hoặc 4a6f68)</option></select><div class="help">Phải khớp chính xác cách chương trình đã dùng để tạo key.</div></div>
+<div class="field"><label for="offset">Độ lệch bắt đầu (offset)</label><input id="offset" type="number" min="0" max="100000000" value="0" step="1"><div class="help">Thông thường để 0. Dùng khi dữ liệu được XOR bắt đầu từ một vị trí cụ thể.</div></div>
+<div class="field" id="channelSettings">
+<label>Kênh màu cần xử lý</label>
+<div class="checkrow"><input id="chanR" type="checkbox" checked><span>Đỏ (R)</span></div>
+<div class="checkrow"><input id="chanG" type="checkbox" checked><span>Xanh lá (G)</span></div>
+<div class="checkrow"><input id="chanB" type="checkbox" checked><span>Xanh dương (B)</span></div>
+</div>
+<label class="checkrow"><input id="preserveAlpha" type="checkbox" checked><span>Giữ nguyên kênh alpha khi giải mã theo pixel.</span></label>
+<div class="buttons"><button class="primary" id="decodeBtn" type="submit">▶ Giải mã</button><button class="secondary" id="resetBtn" type="reset">↺ Đặt lại</button></div>
+</form>
+<div id="status" class="status" role="status" aria-live="polite"><span id="statusText"></span><div id="progress" class="progress hidden"><div id="bar" class="bar"></div></div></div>
+<p class="note">Lưu ý: XOR không có một chuẩn key/mode duy nhất. Cần biết thuật toán, byte encoding và vị trí bắt đầu của nguồn để khôi phục chính xác.</p>
+</section>
+<section class="panel">
+<div class="resulthead"><h2>02 / Kết quả</h2><span class="pill" id="fileInfo">Chưa có tệp</span></div>
+<div class="previews">
+<div class="preview"><h3>ĐẦU VÀO</h3><img id="inputPreview" class="hidden" alt="Xem trước tệp đầu vào"><div id="inputPlaceholder" class="placeholder">Chọn tệp để xem trước<br>nếu trình duyệt hỗ trợ</div></div>
+<div class="preview"><h3>SAU GIẢI MÃ</h3><img id="outputPreview" class="hidden" alt="Xem trước dữ liệu sau giải mã"><div id="outputPlaceholder" class="placeholder">Kết quả sẽ hiển thị ở đây</div></div>
+</div>
+<div class="meta" id="resultMeta"></div>
+<div class="buttons"><a id="downloadLink" class="download" hidden download="xor-decoded.bin">⬇ Tải tệp kết quả</a><button id="clearResult" type="button" class="quiet">Xóa kết quả</button></div>
+<p class="note">Nếu kết quả không hiển thị thành ảnh, vẫn có thể tải xuống để kiểm tra bằng công cụ phù hợp. Thành công về mặt xử lý không đồng nghĩa key đã đúng.</p>
+</section>
+</div>
+<p class="footer">XOR Studio · Chạy hoàn toàn cục bộ · Không gửi tệp lên máy chủ</p>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+let inputUrl = null, outputUrl = null;
+const form = $('decodeForm');
+function setStatus(message, type='info', progress=false) {
+  $('status').className = 'status show ' + type;
+  $('statusText').textContent = message;
+  $('progress').classList.toggle('hidden', !progress);
+  if (progress) setProgress(0);
+}
+function setProgress(value) { $('bar').style.width = Math.max(0, Math.min(100, value)) + '%'; }
+function hideStatus() { $('status').className = 'status'; }
+function releaseUrl(name) { if (name && name.startsWith('blob:')) URL.revokeObjectURL(name); }
+function resetPreview(imgId, placeholderId, urlName) {
+  $(imgId).removeAttribute('src'); $(imgId).classList.add('hidden'); $(placeholderId).classList.remove('hidden');
+  if (urlName === 'input') { releaseUrl(inputUrl); inputUrl = null; }
+  if (urlName === 'output') { releaseUrl(outputUrl); outputUrl = null; }
+}
+function clearOutput() {
+  resetPreview('outputPreview','outputPlaceholder','output');
+  $('downloadLink').hidden = true; $('downloadLink').removeAttribute('href');
+  $('resultMeta').replaceChildren();
+}
+function bytesFromKey(text, encoding) {
+  if (encoding === 'hex') {
+    const clean = text.replace(/[\s,:-]/g, '');
+    if (!clean || clean.length % 2 || !/^[0-9a-f]+$/i.test(clean)) throw new Error('Khóa Hex không hợp lệ. Nhập các cặp ký tự hex, ví dụ 4a6f68.');
+    const out = new Uint8Array(clean.length / 2);
+    for (let i=0;i<out.length;i++) out[i] = parseInt(clean.slice(i*2,i*2+2),16);
+    return out;
+  }
+  if (encoding === 'ascii') {
+    const out = new Uint8Array(text.length);
+    for (let i=0;i<text.length;i++) { const c=text.charCodeAt(i); if(c>127) throw new Error('Khóa ASCII chỉ được chứa ký tự ASCII (0–127).'); out[i]=c; }
+    return out;
+  }
+  return new TextEncoder().encode(text);
+}
+function xorBytes(input, key, offset, onProgress) {
+  const out = new Uint8Array(input.length);
+  const chunk = 1024 * 1024;
+  for (let start=0; start<input.length; start+=chunk) {
+    const end=Math.min(input.length,start+chunk);
+    for(let i=start;i<end;i++) out[i]=input[i]^key[(i+offset)%key.length];
+    onProgress(end/input.length*100);
+  }
+  return out;
+}
+function modInverse(a, mod) {
+  // Euclid mở rộng: tìm x sao cho (a*x) mod 256 = 1
+  let t=0, newT=1, r=mod, newR=((a%mod)+mod)%mod;
+  while(newR!==0) {
+    const q=Math.floor(r/newR);
+    [t,newT]=[newT,t-q*newT];
+    [r,newR]=[newR,r-q*newR];
+  }
+  if(r!==1) throw new Error('Key của phép nhân phải là số lẻ để có thể giải mã ngược.');
+  return ((t%mod)+mod)%mod;
+}
+function mathTransform(value, keyByte, operation) {
+  if(operation==='add') return (value-keyByte+256)&255; // giải mã phép cộng
+  if(operation==='sub') return (value+keyByte)&255;     // giải mã phép trừ
+  const inv=modInverse(keyByte,256);
+  return (value*inv)&255;                               // giải mã phép nhân
+}
+function pixelTransform(imageData, key, offset, mode, preserveAlpha, onProgress) {
+  const d=imageData.data, pixels=d.length/4;
+  const enabled=[$('chanR').checked,$('chanG').checked,$('chanB').checked];
+  if(!enabled.some(Boolean)) throw new Error('Hãy chọn ít nhất một kênh màu R, G hoặc B.');
+  const operation=$('mathOp').value;
+  if(mode==='pixel-math' && operation==='mul' && key.some(k=>k%2===0)) throw new Error('Phép nhân modulo 256 chỉ đảo ngược được khi mọi byte key được dùng đều là số lẻ. Hãy chọn key phù hợp hoặc phép toán khác.');
+  for(let p=0;p<pixels;p++) {
+    const i=p*4;
+    for(let c=0;c<3;c++) {
+      if(!enabled[c]) continue;
+      const keyIndex=mode==='pixel-three' ? (p*3+c+offset)%key.length : (p+offset)%key.length;
+      const k=key[keyIndex];
+      if(mode==='pixel-math') d[i+c]=mathTransform(d[i+c],k,operation);
+      else if(mode==='pixel-mix') {
+        // Giải mã mô hình: ciphertext = ((plaintext + mathKey) mod 256) XOR xorKey
+        const xorKey=key[(p*3+c+offset)%key.length];
+        const mathKey=key[(p+offset)%key.length];
+        d[i+c]=((d[i+c]^xorKey)-mathKey+256)&255;
+      } else d[i+c] ^= k;
+    }
+    if(!preserveAlpha) d[i+3] ^= key[(p+offset)%key.length];
+    if(p%8192===0) onProgress(p/pixels*100);
+  }
+  onProgress(100);
+}
+function blobFromBytes(bytes, type='application/octet-stream') { return new Blob([bytes],{type}); }
+function addMeta(text) { const s=document.createElement('span'); s.className='pill'; s.textContent=text; $('resultMeta').append(s); }
+function showImage(url, imgId, placeholderId) {
+  return new Promise(resolve => {
+    const img=$(imgId);
+    img.onload=()=>{img.classList.remove('hidden');$(placeholderId).classList.add('hidden');resolve(true);};
+    img.onerror=()=>{img.classList.add('hidden');$(placeholderId).classList.remove('hidden');resolve(false);};
+    img.src=url;
+  });
+}
+function setDownload(blob, filename) {
+  releaseUrl(outputUrl); outputUrl=URL.createObjectURL(blob);
+  $('downloadLink').href=outputUrl; $('downloadLink').download=filename; $('downloadLink').hidden=false;
+}
+$('mode').addEventListener('change', () => {
+  const pixelMode=$('mode').value!=='raw';
+  $('mathSettings').classList.toggle('hidden', !['pixel-math','pixel-mix'].includes($('mode').value));
+  $('channelSettings').classList.toggle('hidden', !pixelMode);
+  const m=$('mode').value;
+  $('modeHelp').textContent = m==='raw' ? 'XOR từng byte của tệp gốc.' : m==='pixel-math' ? 'Đảo phép cộng/trừ modulo 256 hoặc phép nhân khả nghịch trên từng kênh RGB.' : m==='pixel-mix' ? 'Giải mã mô hình: ciphertext = ((plaintext + key) mod 256) XOR key; chỉ khớp nếu nguồn dùng đúng mô hình này.' : 'Trình duyệt phải đọc được ảnh gốc trước khi XOR các kênh pixel.';
+});
+$('fileInput').addEventListener('change', async () => {
+  clearOutput(); resetPreview('inputPreview','inputPlaceholder','input');
+  const file=$('fileInput').files[0];
+  if(!file){$('fileInfo').textContent='Chưa có tệp';return;}
+  $('fileInfo').textContent=file.name+' · '+(file.size<1024*1024?(file.size/1024).toFixed(1)+' KB':(file.size/1024/1024).toFixed(2)+' MB');
+  inputUrl=URL.createObjectURL(file);
+  await showImage(inputUrl,'inputPreview','inputPlaceholder');
+});
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+  const file=$('fileInput').files[0], keyText=$('keyInput').value;
+  if(!file){setStatus('Vui lòng chọn tệp đầu vào.','error');return;}
+  if(!keyText.length){setStatus('Vui lòng nhập khóa.','error');return;}
+  const offset=Number($('offset').value);
+  if(!Number.isSafeInteger(offset)||offset<0){setStatus('Offset phải là số nguyên không âm.','error');return;}
+  let key;
+  try { key=bytesFromKey(keyText,$('encoding').value); } catch(err){setStatus(err.message,'error');return;}
+  if(!key.length){setStatus('Khóa tạo ra 0 byte; hãy kiểm tra lại.','error');return;}
+  clearOutput(); $('decodeBtn').disabled=true; $('resetBtn').disabled=true;
+  setStatus('Đang xử lý tệp…', 'info', true);
+  try {
+    let resultBlob, filename;
+    const mode=$('mode').value;
+    if(mode==='raw') {
+      const buffer=await file.arrayBuffer();
+      const source=new Uint8Array(buffer);
+      const decoded=xorBytes(source,key,offset,setProgress);
+      const type=/\.(png|jpe?g|gif|webp|bmp|avif)$/i.test(file.name)?({png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',bmp:'image/bmp',avif:'image/avif'}[file.name.split('.').pop().toLowerCase()]||'application/octet-stream'):'application/octet-stream';
+      resultBlob=blobFromBytes(decoded,type);
+      const ext=type==='image/png'?'.png':type==='image/jpeg'?'.jpg':type==='image/gif'?'.gif':type==='image/webp'?'.webp':type==='image/bmp'?'.bmp':type==='image/avif'?'.avif':'.bin';
+      filename=file.name.replace(/\.[^.]+$/,'')+'-decoded'+ext;
+    } else {
+      if(!file.type.startsWith('image/')) throw new Error('Chế độ biến đổi pixel yêu cầu tệp ảnh mà trình duyệt có thể giải mã. Hãy dùng chế độ XOR từng byte cho file nhị phân.');
+      const bitmap=await createImageBitmap(file);
+      const canvas=document.createElement('canvas'); canvas.width=bitmap.width; canvas.height=bitmap.height;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      if(!ctx) throw new Error('Trình duyệt không tạo được Canvas 2D.');
+      ctx.drawImage(bitmap,0,0); bitmap.close();
+      const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+      pixelTransform(imageData,key,offset,mode,$('preserveAlpha').checked,setProgress);
+      ctx.putImageData(imageData,0,0);
+      resultBlob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Không thể xuất ảnh PNG.')),'image/png'));
+      filename=file.name.replace(/\.[^.]+$/,'')+'-decoded.png';
+    }
+    setDownload(resultBlob,filename);
+    const ok=await showImage(outputUrl,'outputPreview','outputPlaceholder');
+    addMeta('Kích thước: '+(resultBlob.size<1024*1024?(resultBlob.size/1024).toFixed(1)+' KB':(resultBlob.size/1024/1024).toFixed(2)+' MB'));
+    addMeta('Key: '+key.length+' byte'); addMeta('Offset: '+offset);
+    addMeta(ok?'Kết quả đọc được như ảnh':'Không nhận diện là ảnh hợp lệ');
+    setStatus(ok?'Hoàn tất. Trình duyệt đọc được kết quả như một ảnh.':'Đã xử lý và tạo tệp kết quả. Kết quả không được nhận diện là ảnh; hãy kiểm tra key, mode hoặc định dạng.',ok?'success':'info');
+  } catch(err) {
+    console.error(err); setStatus('Không thể giải mã: '+(err && err.message ? err.message : String(err)),'error');
+  } finally { $('decodeBtn').disabled=false; $('resetBtn').disabled=false; }
+});
+form.addEventListener('reset', () => {
+  setTimeout(()=> {
+    hideStatus(); clearOutput(); resetPreview('inputPreview','inputPlaceholder','input');
+    $('fileInfo').textContent='Chưa có tệp'; $('modeHelp').textContent='XOR tệp nhị phân trước, sau đó thử xem kết quả có phải ảnh hợp lệ không.';
+  },0);
+});
+$('clearResult').addEventListener('click',()=>{clearOutput();hideStatus();});
+// Khởi tạo trạng thái tùy chọn theo mode mặc định.
+$('mathSettings').classList.toggle('hidden', !['pixel-math','pixel-mix'].includes($('mode').value));
+$('channelSettings').classList.toggle('hidden', $('mode').value==='raw');
+window.addEventListener('beforeunload',()=>{releaseUrl(inputUrl);releaseUrl(outputUrl);});
+</script>
+</body>
+</html>
